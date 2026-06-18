@@ -1,0 +1,15 @@
+# Render.com blueprint — deploys ONLY the Colyseus server from the monorepo.
+# Free Web Service tier. Render injects PORT; the server already reads it and
+# binds 0.0.0.0. WebSockets work on Render web services.
+services:
+  - type: web
+    name: deadline-server
+    runtime: node
+    plan: free
+    region: frankfurt        # pick the region nearest you/Shane
+    buildCommand: npm install && npm run build:server
+    startCommand: node packages/server/dist/server/src/index.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"

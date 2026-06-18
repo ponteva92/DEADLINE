@@ -1,0 +1,106 @@
+import Phaser from 'phaser';
+
+/**
+ * Procedurally generates all game textures (vector-stylized: bold fills, clean
+ * outlines, soft glows). Called once before any sprites are created.
+ */
+export function createTextures(scene: Phaser.Scene): void {
+  const g = scene.make.graphics({ x: 0, y: 0 }, false);
+
+  // Player: body + barrel, facing +X so rotation = aim angle.
+  g.clear();
+  g.fillStyle(0x0c2a17, 1); g.fillCircle(26, 26, 21);
+  g.fillStyle(0x53e07a, 1); g.fillCircle(26, 26, 17);
+  g.fillStyle(0x9bf5b8, 1); g.fillCircle(22, 22, 7);
+  g.fillStyle(0x0c2a17, 1); g.fillRoundedRect(26, 21, 26, 10, 4);
+  g.fillStyle(0xdfffe9, 1); g.fillRoundedRect(40, 23, 10, 6, 3);
+  g.generateTexture('player', 60, 52);
+
+  // Zombie.
+  g.clear();
+  g.fillStyle(0x14250f, 1); g.fillCircle(20, 20, 18);
+  g.fillStyle(0x7ab648, 1); g.fillCircle(20, 20, 15);
+  g.fillStyle(0x5f9636, 1); g.fillCircle(15, 24, 5); g.fillCircle(26, 16, 4);
+  g.fillStyle(0x101510, 1); g.fillCircle(15, 17, 3); g.fillCircle(25, 19, 3);
+  g.fillStyle(0xff5a5a, 1); g.fillCircle(15, 17, 1.3); g.fillCircle(25, 19, 1.3);
+  g.generateTexture('enemy', 40, 40);
+
+  // Projectile bolt (ADD blend in scene; tinted per team).
+  g.clear();
+  g.fillStyle(0xffffff, 1); g.fillRoundedRect(0, 3, 22, 6, 3);
+  g.fillStyle(0xffffff, 1); g.fillRoundedRect(2, 4, 12, 4, 2);
+  g.generateTexture('proj', 24, 12);
+
+  // Crate / static obstacle.
+  g.clear();
+  g.fillStyle(0x2a3340, 1); g.fillRect(0, 0, 56, 56);
+  g.lineStyle(3, 0x4a6076, 1); g.strokeRect(2, 2, 52, 52);
+  g.lineStyle(2, 0x3a4a5a, 1); g.lineBetween(2, 2, 54, 54); g.lineBetween(54, 2, 2, 54);
+  g.generateTexture('crate', 56, 56);
+
+  // Particle.
+  g.clear(); g.fillStyle(0xffffff, 1); g.fillRect(0, 0, 6, 6);
+  g.generateTexture('particle', 6, 6);
+
+  // Resource nodes (wood / metal / tech).
+  node(g, 'node_wood', 0x6b4a2b, 0x8a5a2b, 0xb07a3a);
+  node(g, 'node_metal', 0x4a5560, 0x6b7785, 0x9aa6b2);
+  node(g, 'node_tech', 0x1f6f6f, 0x2bb6b6, 0x7df0f0);
+  node(g, 'node_stone', 0x3a4250, 0x6b7280, 0x9aa3b0);
+
+  // Towers (turret base + barrel facing +X; wall is a solid block).
+  tower(g, 'tower_light', 0x1c3a26, 0x53e07a, 0x9bf5b8);
+  tower(g, 'tower_heavy', 0x1c2a44, 0x4f8fe0, 0xa9cdff);
+  g.clear();
+  g.fillStyle(0x39424d, 1); g.fillRoundedRect(2, 2, 44, 44, 8);
+  g.lineStyle(3, 0x5a6675, 1); g.strokeRoundedRect(2, 2, 44, 44, 8);
+  g.lineStyle(2, 0x4a5560, 1); g.lineBetween(4, 24, 44, 24); g.lineBetween(24, 4, 24, 44);
+  g.generateTexture('tower_wall', 48, 48);
+
+  // Phase-7 arsenal (6 sleek classes).
+  tower(g, 'tower_rail',      0x202832, 0x9fb2c4, 0xffffff);
+  tower(g, 'tower_artillery', 0x3a2410, 0xe07b3a, 0xffd24a);
+  tower(g, 'tower_cryo',      0x123038, 0x2bb6d6, 0x9bf0ff);
+  tower(g, 'tower_toxic',     0x16301a, 0x4fd06a, 0x9bff5a);
+  tower(g, 'tower_tesla',     0x241a40, 0x6f6fe0, 0xb0a0ff);
+  tower(g, 'tower_bastion',   0x2a3038, 0x6b7785, 0xaab4c0);
+
+  g.destroy();
+
+  radial(scene, 'glow', 96, [[0, 'rgba(255,255,255,1)'], [0.25, 'rgba(255,240,180,0.7)'], [1, 'rgba(255,240,180,0)']]);
+  radial(scene, 'splat', 48, [[0, 'rgba(120,30,30,0.9)'], [0.6, 'rgba(90,20,20,0.55)'], [1, 'rgba(90,20,20,0)']]);
+  radial(scene, 'vignette', 512, [[0, 'rgba(6,9,14,0)'], [0.62, 'rgba(6,9,14,0)'], [1, 'rgba(4,6,10,0.92)']]);
+  radial(scene, 'corelight', 420, [[0, 'rgba(60,130,255,0.34)'], [1, 'rgba(60,130,255,0)']]);
+}
+
+function node(
+  g: Phaser.GameObjects.Graphics, key: string, dark: number, mid: number, light: number,
+): void {
+  g.clear();
+  g.fillStyle(dark, 1); g.fillCircle(24, 24, 20);
+  g.fillStyle(mid, 1); g.fillCircle(24, 24, 16);
+  g.fillStyle(light, 1); g.fillCircle(19, 19, 6);
+  g.fillStyle(dark, 1); g.fillCircle(30, 28, 5);
+  g.generateTexture(key, 48, 48);
+}
+
+function tower(
+  g: Phaser.GameObjects.Graphics, key: string, dark: number, body: number, light: number,
+): void {
+  g.clear();
+  g.fillStyle(dark, 1); g.fillRoundedRect(2, 2, 44, 44, 10);
+  g.fillStyle(body, 1); g.fillCircle(24, 24, 15);
+  g.fillStyle(light, 1); g.fillCircle(20, 20, 5);
+  g.fillStyle(dark, 1); g.fillRoundedRect(24, 19, 26, 10, 4);
+  g.generateTexture(key, 52, 48);
+}
+
+function radial(scene: Phaser.Scene, key: string, size: number, stops: [number, string][]): void {
+  if (scene.textures.exists(key)) return;
+  const canvas = scene.textures.createCanvas(key, size, size);
+  if (!canvas) return;
+  const ctx = canvas.getContext();
+  const grad = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  for (const [off, col] of stops) grad.addColorStop(off, col);
+  ctx.fillStyle = grad; ctx.fillRect(0, 0, size, size); canvas.refresh();
+}

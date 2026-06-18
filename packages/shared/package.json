@@ -1,0 +1,9 @@
+{
+  "name": "@deadline/shared",
+  "version": "1.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "dependencies": {
+    "@colyseus/schema": "^2.0.0"
+  }
+}
